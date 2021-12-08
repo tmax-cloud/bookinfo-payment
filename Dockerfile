@@ -1,7 +1,3 @@
-FROM openjdk:11
-
-ADD ./build/libs/payment.jar /app/
-
-WORKDIR /app
+FROM docker.io/openjdk:11
 
 CMD ["java", "-jar", "payment.jar"]
