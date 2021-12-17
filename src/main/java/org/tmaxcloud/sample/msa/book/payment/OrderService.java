@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.tmaxcloud.sample.msa.book.common.dto.PaymentDto;
 
 @Service
 public class OrderService {
@@ -16,15 +17,15 @@ public class OrderService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${BOOK_ORDER_URL}")
-    private String orderSvcAddr;
+    @Value("${upstream.order}")
+    private String orderServiceUrl;
 
     public OrderService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     @Async
-    public void payFuture(Payment payment) {
+    public void payFuture(PaymentDto paymentDto) {
         try {
             int second = (int) (Math.random() * 10) + 1;
             Thread.sleep(second * 1000L);
@@ -32,15 +33,13 @@ public class OrderService {
             Thread.currentThread().interrupt();
         }
 
-        log.info("process paying {}", payment);
         ResponseEntity<String> response = restTemplate.postForEntity(
-                orderSvcAddr + "/orders/{id}/process", payment.getOrderId(), String.class, payment.getOrderId());
-
+                orderServiceUrl + "/api/orders/{id}/process", paymentDto, String.class, paymentDto.getOrderId());
         if (response.getStatusCode() != HttpStatus.OK) {
-            log.warn("failed to process paying: {}", payment);
+            log.warn("failed to process paying: {}", paymentDto);
             return;
         }
 
-        log.info("order({}) paid {}", payment.getOrderId(), response.getBody());
+        log.info("order({}) paid {}", paymentDto, response.getBody());
     }
 }
